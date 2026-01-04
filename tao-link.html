@@ -76,6 +76,17 @@
 </div>
 
 <script>
+const SECRET_KEY = "GV_TOAN_2026";
+
+function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return hash.toString();
+}
+
 function createLink() {
     const data = document.getElementById("dataUrl").value.trim();
     if (!data) {
@@ -88,7 +99,12 @@ function createLink() {
 
     const base = location.href.replace("tao-link.html", "index.html");
 
-    const link = `${base}?data=${encodeURIComponent(data)}&time=${time}&mode=${mode}`;
+    // 🔐 TẠO CHỮ KÝ
+    const raw = data + time + mode + SECRET_KEY;
+    const sig = simpleHash(raw);
+
+    // 🔗 LINK ĐÃ KHOÁ
+    const link = `${base}?data=${encodeURIComponent(data)}&time=${time}&mode=${mode}&sig=${sig}`;
 
     document.getElementById("result").innerHTML = `
         <b>Link đề thi:</b><br>

@@ -360,6 +360,36 @@
         </div>
     </div>
     <script>
+        const SECRET_KEY = "GV_TOAN_2026"; // đổi chuỗi này
+
+        function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return hash.toString();
+}
+
+const params = new URLSearchParams(location.search);
+
+const data = params.get("data");
+const time = params.get("time");
+const mode = params.get("mode");
+const sig  = params.get("sig");
+
+if (!data || !sig) {
+    alert("❌ Link đề thi không hợp lệ");
+    throw new Error("Invalid link");
+}
+
+const expectedSig = simpleHash(data + time + mode + SECRET_KEY);
+
+if (sig !== expectedSig) {
+    alert("❌ Link đã bị chỉnh sửa hoặc không hợp lệ");
+    throw new Error("Tampered link");
+}
+
         const SCRIPT_URL = ""; 
         const tenBaiKiemTra = "Kiểm tra gh";
         
