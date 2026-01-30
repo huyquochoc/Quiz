@@ -1,3 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Redirect...</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: Arial;
+  background: #f6f7fb;
+  text-align: center;
+  padding-top: 60px;
+}
+.box {
+  background: white;
+  padding: 25px;
+  max-width: 520px;
+  margin: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0,0,0,.08);
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+  <h2 id="status">🔄 Đang xử lý...</h2>
+  <p id="msg"></p>
+</div>
+
 <script>
 const JSON_URL = "https://huyquochoc.github.io/Quiz/shortlinks.json";
 
@@ -7,58 +38,49 @@ const key = params.get("id");
 const statusEl = document.getElementById("status");
 const msgEl = document.getElementById("msg");
 
+console.log("Requested key:", key);
+
 if (!key) {
-  statusEl.textContent = "❌ Thiếu mã link";
-  msgEl.textContent = "Không tìm thấy tham số ?id=";
+  statusEl.textContent = "❌ Thiếu ?id=";
   throw new Error("Missing id");
 }
 
-fetch(JSON_URL)
+fetch(JSON_URL + "?t=" + Date.now()) // tránh cache
   .then(r => r.json())
   .then(data => {
-    console.log("JSON loaded:", data);
-    console.log("Key requested:", key);
+    console.log("Loaded JSON:", data);
 
     if (!data[key]) {
-      statusEl.textContent = "❌ Link không tồn tại";
-      msgEl.textContent = "Mã link không hợp lệ hoặc đã bị xóa";
+      statusEl.textContent = "❌ Key không tồn tại";
+      msgEl.textContent = "Không tìm thấy: " + key;
       return;
     }
 
     const record = data[key];
+    console.log("Record:", record);
 
-    if (!record.url) {
-      statusEl.textContent = "❌ JSON sai cấu trúc";
-      msgEl.textContent = "Thiếu trường url trong shortlinks.json";
+    const url = record.url;
+
+    if (!url) {
+      statusEl.textContent = "❌ Không có URL";
       return;
     }
 
-    const url = record.url;
-    const expire = record.expire;
-
-    // ===== CHECK EXPIRE =====
-    if (expire) {
-      const today = new Date().toISOString().split("T")[0];
-      if (today > expire) {
-        statusEl.textContent = "⛔ Link đã hết hạn";
-        msgEl.textContent = "Vui lòng liên hệ giáo viên để lấy link mới";
-        return;
-      }
-    }
-
-    // ===== REDIRECT =====
     statusEl.textContent = "✅ Đang chuyển hướng...";
-    msgEl.textContent = "Vui lòng chờ...";
+    msgEl.textContent = url;
 
-    console.log("Redirect to:", url);
+    console.log("Redirecting to:", url);
 
+    // REDIRECT
     setTimeout(() => {
-      window.location.href = url;
+      window.location.replace(url);
     }, 600);
   })
   .catch(err => {
     console.error("Fetch error:", err);
-    statusEl.textContent = "⚠️ Lỗi tải dữ liệu";
-    msgEl.textContent = "Không thể tải shortlinks.json";
+    statusEl.textContent = "⚠️ Lỗi tải JSON";
+    msgEl.textContent = err.toString();
   });
 </script>
+</body>
+</html>
