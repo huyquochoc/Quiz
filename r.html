@@ -1,38 +1,3 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<title>Redirecting...</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f6f7fb;
-  text-align: center;
-  padding-top: 60px;
-}
-.box {
-  background: white;
-  padding: 25px;
-  max-width: 520px;
-  margin: auto;
-  border-radius: 12px;
-  box-shadow: 0 10px 20px rgba(0,0,0,.08);
-}
-.error {
-  color: red;
-  font-weight: bold;
-}
-</style>
-</head>
-
-<body>
-<div class="box">
-  <h2 id="status">🔄 Đang xử lý link...</h2>
-  <p id="msg"></p>
-</div>
-
 <script>
 const JSON_URL = "https://huyquochoc.github.io/Quiz/shortlinks.json";
 
@@ -51,6 +16,9 @@ if (!key) {
 fetch(JSON_URL)
   .then(r => r.json())
   .then(data => {
+    console.log("JSON loaded:", data);
+    console.log("Key requested:", key);
+
     if (!data[key]) {
       statusEl.textContent = "❌ Link không tồn tại";
       msgEl.textContent = "Mã link không hợp lệ hoặc đã bị xóa";
@@ -58,6 +26,13 @@ fetch(JSON_URL)
     }
 
     const record = data[key];
+
+    if (!record.url) {
+      statusEl.textContent = "❌ JSON sai cấu trúc";
+      msgEl.textContent = "Thiếu trường url trong shortlinks.json";
+      return;
+    }
+
     const url = record.url;
     const expire = record.expire;
 
@@ -75,15 +50,15 @@ fetch(JSON_URL)
     statusEl.textContent = "✅ Đang chuyển hướng...";
     msgEl.textContent = "Vui lòng chờ...";
 
+    console.log("Redirect to:", url);
+
     setTimeout(() => {
       window.location.href = url;
-    }, 800);
+    }, 600);
   })
   .catch(err => {
-    console.error(err);
+    console.error("Fetch error:", err);
     statusEl.textContent = "⚠️ Lỗi tải dữ liệu";
     msgEl.textContent = "Không thể tải shortlinks.json";
   });
 </script>
-</body>
-</html>
