@@ -38,49 +38,55 @@ const key = params.get("id");
 const statusEl = document.getElementById("status");
 const msgEl = document.getElementById("msg");
 
-console.log("Requested key:", key);
-
 if (!key) {
-  statusEl.textContent = "❌ Thiếu ?id=";
+  statusEl.textContent = "❌ Thiếu mã truy cập";
+  msgEl.textContent = "Link không hợp lệ";
   throw new Error("Missing id");
 }
 
-fetch(JSON_URL + "?t=" + Date.now()) // tránh cache
+fetch(JSON_URL + "?t=" + Date.now())
   .then(r => r.json())
   .then(data => {
-    console.log("Loaded JSON:", data);
-
     if (!data[key]) {
-      statusEl.textContent = "❌ Key không tồn tại";
-      msgEl.textContent = "Không tìm thấy: " + key;
+      statusEl.textContent = "❌ Link không tồn tại";
+      msgEl.textContent = "Mã link không hợp lệ hoặc đã bị xóa";
       return;
     }
 
     const record = data[key];
-    console.log("Record:", record);
-
     const url = record.url;
+    const expire = record.expire;
 
     if (!url) {
-      statusEl.textContent = "❌ Không có URL";
+      statusEl.textContent = "❌ Lỗi dữ liệu";
+      msgEl.textContent = "Không tìm thấy URL";
       return;
     }
 
+    // ===== CHECK EXPIRE =====
+    if (expire) {
+      const today = new Date().toISOString().split("T")[0];
+      if (today > expire) {
+        statusEl.textContent = "⛔ Link đã hết hạn";
+        msgEl.textContent = "Vui lòng liên hệ giáo viên";
+        return;
+      }
+    }
+
+    // ===== SHOW STATUS ONLY =====
     statusEl.textContent = "✅ Đang chuyển hướng...";
-    msgEl.textContent = url;
+    msgEl.textContent = "Vui lòng chờ trong giây lát";
 
-    console.log("Redirecting to:", url);
-
-    // REDIRECT
+    // ===== REDIRECT SILENT =====
     setTimeout(() => {
       window.location.replace(url);
-    }, 600);
+    }, 700);
   })
-  .catch(err => {
-    console.error("Fetch error:", err);
-    statusEl.textContent = "⚠️ Lỗi tải JSON";
-    msgEl.textContent = err.toString();
+  .catch(() => {
+    statusEl.textContent = "⚠️ Lỗi tải dữ liệu";
+    msgEl.textContent = "Không thể tải shortlinks.json";
   });
 </script>
+
 </body>
 </html>
