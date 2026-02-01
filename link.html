@@ -38,6 +38,7 @@ const key = params.get("id");
 const statusEl = document.getElementById("status");
 const msgEl = document.getElementById("msg");
 
+// ===== VALIDATE ID =====
 if (!key) {
   statusEl.textContent = "❌ Link không hợp lệ";
   msgEl.textContent =
@@ -45,18 +46,34 @@ if (!key) {
   return;
 }
 
+// ===== RETRY COUNTER =====
+const retryKey = "retry_" + key;
+let retry = Number(sessionStorage.getItem(retryKey) || 0);
+
 fetch(JSON_URL + "?t=" + Date.now())
   .then(r => r.json())
   .then(data => {
     if (!data[key]) {
-      statusEl.textContent = "⏳ Link đang được cập nhật";
-      msgEl.textContent =
-        "Link vừa được tạo. Vui lòng thử lại sau 30–60 giây.";
-    
-      // auto reload 1 lần
-      setTimeout(() => location.reload(), 5000);
+
+      if (retry < 2) {
+        retry++;
+        sessionStorage.setItem(retryKey, retry);
+
+        statusEl.textContent = "⏳ Đang đồng bộ link...";
+        msgEl.textContent =
+          "Link vừa được tạo. Tự động thử lại sau vài giây.";
+
+        setTimeout(() => location.reload(), 5000);
+      } else {
+        statusEl.textContent = "❌ Link chưa sẵn sàng";
+        msgEl.textContent =
+          "Vui lòng thử lại sau 1–2 phút hoặc kiểm tra lại mã link.";
+      }
       return;
     }
+
+    // ===== OK: RESET RETRY =====
+    sessionStorage.removeItem(retryKey);
 
     const record = data[key];
     const url = record.url;
@@ -68,7 +85,6 @@ fetch(JSON_URL + "?t=" + Date.now())
       return;
     }
 
-    // ===== CHECK EXPIRE =====
     if (expire) {
       const today = new Date().toISOString().split("T")[0];
       if (today > expire) {
@@ -78,11 +94,9 @@ fetch(JSON_URL + "?t=" + Date.now())
       }
     }
 
-    // ===== SHOW STATUS ONLY =====
-    statusEl.textContent = "✅✅✅✅✅✅";
-    msgEl.textContent = "Vui lòng chờ trong giây lát";
+    statusEl.textContent = "✅";
+    msgEl.textContent = "Đang chuyển hướng...";
 
-    // ===== REDIRECT SILENT =====
     setTimeout(() => {
       window.location.replace(url);
     }, 700);
@@ -92,6 +106,7 @@ fetch(JSON_URL + "?t=" + Date.now())
     msgEl.textContent = "Không thể tải shortlinks.json";
   });
 </script>
+
 
 </body>
 </html>
