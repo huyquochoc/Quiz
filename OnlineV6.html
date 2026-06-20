@@ -644,7 +644,7 @@ const QUIZ_DISPLAY_CONFIG = "both"
 //271
 let QUIZ_PASSWORD_ORIGINAL = ""; // Biến lưu mật khẩu từ JSON
 let mode_xuatketqua = "HS_DIEM";
-let mode_pen = false;
+let QUIZ_MODE_PEN = false;
 let QUIZ_MODE_CSV = false; // Mặc định là ẩn
 let shuffleOptions = {
     "shuffle_q_type1": false, "shuffle_a_type1": false, 
@@ -761,8 +761,8 @@ async function loadData() {
             }
 
             // 2. Xử lý cho bút và highlight JSON
-            if (data.quiz_info.mode_xuatcsv) {
-                mode_pen = data.quiz_info.mode_pen;
+            if (data.quiz_info.mode_pen) {
+                QUIZ_MODE_PEN = data.quiz_info.mode_pen;
                 //console.log("✅ Đã cập nhật cấu hình QUIZ_MODE_CSV", QUIZ_MODE_CSV);
             }
 
@@ -3287,7 +3287,7 @@ function makeElementDraggable(elmnt, handle) {
 // Kích hoạt tính năng kéo thả ngay sau khi trang web tải xong
 document.addEventListener("DOMContentLoaded", function() {
     // Kiểm tra chính xác biến toàn cục window.mode_pen
-    if (mode_pen === true) {
+    if (QUIZ_MODE_PEN === true) {
         const btnContainer = document.getElementById("main-scratch-btn-container");
         if (btnContainer) {
             btnContainer.style.display = "flex"; // Chỉ khi đúng chữ "chophep" mới đổi thành flex để hiển thị
