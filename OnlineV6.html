@@ -763,7 +763,7 @@ async function loadData() {
             // 2. Xử lý cho bút và highlight JSON
             if (data.quiz_info.mode_pen) {
                 QUIZ_MODE_PEN = data.quiz_info.mode_pen;
-                console.log("✅ Đã cập nhật cấu hình QUIZ_MODE_CSV", QUIZ_MODE_CSV);
+                console.log("✅ Đã cập nhật cấu hình QUIZ_MODE_PEN", QUIZ_MODE_PEN);
                 applyQuizModePen();
             }
 
@@ -823,36 +823,6 @@ async function loadData() {
     }
 }
 
-
-// ================== KHỞI CHẠY ==================
-
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // 1. Tải dữ liệu JSON
-        await loadData(); 
-        
-        // 2. Khởi tạo giao diện (nếu có hàm populateIntro)
-        if (typeof populateIntro === "function") {
-            populateIntro();
-        }
-        
-        // 3. Hiển thị công thức Toán học
-        if (window.MathJax && window.MathJax.typesetPromise) {
-            window.MathJax.typesetPromise();
-        }
-
-        // 4. Gán sự kiện cho các nút điều hướng
-        const btnToggle = document.getElementById('toggle-results-btn');
-        if (btnToggle) {
-            btnToggle.addEventListener('click', () => {
-                document.getElementById('results-panel')?.classList.toggle('open');
-            });
-        }
-    } catch (e) {
-        console.error("Initialization Error:", e);
-    }
-});
-
 // Hàm mới: Tải thời gian đã lưu từ localStorage
 //load và star để hết không bị refresh cho làm lại
 // --- Load thời gian còn lại ---
@@ -905,28 +875,7 @@ function shuffleArray(array) {
         [array[i], array[j]] = [array[j], array[i]];
     }
 }
-// new 26/1 ẩn menu
-document.addEventListener('DOMContentLoaded', () => {
-    populateIntro();
-    document.getElementById('toggle-results-btn')?.addEventListener('click', () => {
-        document.getElementById('results-panel')?.classList.toggle('open');
-    });
-});
-//295
-document.addEventListener("DOMContentLoaded", function () {
 
-    // 295 toàn bộ mục 4 này 
-    //4. Kiểm tra cấu hình chế độ hiển thị hệ thống
-    const modeBtnContainer = document.getElementById("display-mode-container");
-    
-    if (QUIZ_DISPLAY_CONFIG === "both") {
-        // Cho hiển thị thanh công cụ tùy chọn nếu cấu hình là 'both'
-        if (modeBtnContainer) modeBtnContainer.style.display = "block";
-    } else {
-        // Ẩn thanh công cụ tùy chọn đi nếu chỉ định duy nhất 1 chế độ cố định
-        if (modeBtnContainer) modeBtnContainer.style.display = "none";
-    }
-});
 function populateIntro() {
     const introTitle = document.getElementById('quiz-intro-title');
     const introTime = document.getElementById('quiz-intro-time');
@@ -3056,30 +3005,7 @@ function calcTotalScore(results, types) {
     return total.toFixed(2);
 }
 
-// Chặn chuột phải
-document.addEventListener("contextmenu", function (e) {
-    e.preventDefault();
-});
 
-// Chặn các phím tắt quan trọng
-document.addEventListener("keydown", function (e) {
-    // F12
-    if (e.key === "F12") {
-        e.preventDefault();
-    }
-    // Ctrl+Shift+I hoặc Ctrl+Shift+C
-    if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "C")) {
-        e.preventDefault();
-    }
-    // Ctrl+U (View Source)
-    if (e.ctrlKey && e.key.toLowerCase() === "u") {
-        e.preventDefault();
-    }
-    // Ctrl+S (Save page)
-    if (e.ctrlKey && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-    }
-});
 // 0621 Sửa canvass
 let isScratchActive = false;
 let isDrawing = false;
@@ -3285,27 +3211,7 @@ function makeElementDraggable(elmnt, handle) {
     }
 }
 
-// Kích hoạt tính năng kéo thả ngay sau khi trang web tải xong
-document.addEventListener("DOMContentLoaded", function() {
-    // Kiểm tra chính xác biến toàn cục window.mode_pen
-    if (QUIZ_MODE_PEN === true) {
-        const btnContainer = document.getElementById("main-scratch-btn-container");
-        if (btnContainer) {
-            btnContainer.style.display = "flex"; // Chỉ khi đúng chữ "chophep" mới đổi thành flex để hiển thị
-            
-            // 1. Khung chứa sẽ di chuyển KHI NẮM VÀO nút kéo ☰ riêng biệt
-        makeElementDraggable(document.getElementById("main-scratch-btn-container"), document.getElementById("scratch-drag-handle"));
-        // 2. Giữ nguyên bảng công cụ
-        makeElementDraggable(document.getElementById("scratchpad-tools"), document.querySelector(".tools-drag-handle"));
-        }
-    } else {
-        // Nếu sai mode hoặc không có biến, đảm bảo nút PHẢI ẨN (Đề phòng CSS chưa ăn lệnh ẩn)
-        const btnContainer = document.getElementById("main-scratch-btn-container");
-        if (btnContainer) {
-            btnContainer.style.display = "none";
-        }
-    }
-});
+
 // Hàm kiểm tra và bật/tắt nút nháp theo cấu hình thực tế
 function applyQuizModePen() {
     const btnContainer = document.getElementById("main-scratch-btn-container");
@@ -3322,6 +3228,90 @@ function applyQuizModePen() {
     }
 }
 //END 0621
+// Chặn chuột phải
+document.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+});
+
+// Chặn các phím tắt quan trọng
+document.addEventListener("keydown", function (e) {
+    // F12
+    if (e.key === "F12") {
+        e.preventDefault();
+    }
+    // Ctrl+Shift+I hoặc Ctrl+Shift+C
+    if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "C")) {
+        e.preventDefault();
+    }
+    // Ctrl+U (View Source)
+    if (e.ctrlKey && e.key.toLowerCase() === "u") {
+        e.preventDefault();
+    }
+    // Ctrl+S (Save page)
+    if (e.ctrlKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+    }
+});
+// =========================================================================
+// TRUNG TÂM KHỞI CHẠY DUY NHẤT (ĐÃ GOM TẤT CẢ CÁC ĐOẠN LỘN XỘN VỀ 1 MỐI)
+// =========================================================================
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // --- BƯỚC 1: TẢI DỮ LIỆU JSON ĐỒNG BỘ TỪ GIT ---
+        // Phải đợi bước này chạy xong thì các bước dưới lấy biến cấu hình mới không bị lỗi "not defined"
+        await loadData(); 
+        
+        // --- BƯỚC 2: KHỞI TẠO GIAO DIỆN GIỚI THIỆU BÀI THI ---
+        if (typeof populateIntro === "function") {
+            populateIntro();
+        }
+        
+        // --- BƯỚC 3: ĐỒNG BỘ HIỂN THỊ CÔNG THỨC TOÁN HỌC MATHJAX ---
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise();
+        }
+
+        // --- BƯỚC 4: GÁN SỰ KIỆN NÚT ĐÓNG/MỞ MENU PANEL KẾT QUẢ ---
+        const btnToggle = document.getElementById('toggle-results-btn');
+        if (btnToggle) {
+            btnToggle.addEventListener('click', () => {
+                document.getElementById('results-panel')?.classList.toggle('open');
+            });
+        }
+
+        // --- BƯỚC 5: KIỂM TRA CẤU HÌNH HIỂN THỊ CHẾ ĐỘ THI (TỪNG CÂU / TẤT CẢ) ---
+        const modeBtnContainer = document.getElementById("display-mode-container");
+        if (typeof QUIZ_DISPLAY_CONFIG !== 'undefined' && QUIZ_DISPLAY_CONFIG === "both") {
+            // Cho hiển thị thanh công cụ tùy chọn nếu cấu hình là 'both'
+            if (modeBtnContainer) modeBtnContainer.style.display = "block";
+        } else {
+            // Ẩn thanh công cụ tùy chọn đi nếu chỉ định duy nhất 1 chế độ cố định
+            if (modeBtnContainer) modeBtnContainer.style.display = "none";
+        }
+
+        // --- BƯỚC 6: KIỂM TRA CẤU HÌNH VÀ KÍCH HOẠT KÉO THẢ BÚT NHÁP bài ---
+        const btnContainer = document.getElementById("main-scratch-btn-container");
+        if (typeof QUIZ_MODE_PEN !== 'undefined' && QUIZ_MODE_PEN === true) {
+            if (btnContainer) {
+                btnContainer.style.display = "flex"; // Chỉ hiển thị dạng flex khi JSON cho phép
+                
+                // 1. Khung chứa nút chính di chuyển KHI NẮM VÀO nút kéo ☰ riêng biệt
+                if (typeof makeElementDraggable === "function") {
+                    makeElementDraggable(document.getElementById("main-scratch-btn-container"), document.getElementById("scratch-drag-handle"));
+                    // 2. Kích hoạt tính năng kéo thả cho bảng công cụ nháp bài
+                    makeElementDraggable(document.getElementById("scratchpad-tools"), document.querySelector(".tools-drag-handle"));
+                }
+            }
+        } else {
+            // Nếu sai cấu hình hoặc JSON không cho phép, ép nút Nháp bài ẩn vĩnh viễn
+            if (btnContainer) btnContainer.style.display = "none";
+        }
+
+    } catch (e) {
+        // Bọc lỗi an toàn, nếu có hàm nào bị lỗi trang web vẫn chạy tiếp không bị sập chết cả trang
+        console.error("Hệ thống khởi tạo Online lỗi ở tiến trình chính:", e);
+    }
+});
     </script>
 </body>
 </html>
