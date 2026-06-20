@@ -742,7 +742,7 @@ async function loadData() {
             // --- CẬP NHẬT MODE TỪ JSON ---
             if (data.quiz_info.mode_xuatketqua) {
                 mode_xuatketqua = data.quiz_info.mode_xuatketqua;
-                console.log("✅ Đã cập nhật mode_xuatketqua từ JSON", mode_xuatketqua);
+                //console.log("✅ Đã cập nhật mode_xuatketqua từ JSON", mode_xuatketqua);
             }
              // --- CẬP NHẬT MODE QUIZ_TIME_LEFT_MODE ---
             if (data.quiz_info.quiz_time_leftmode) {
@@ -763,7 +763,8 @@ async function loadData() {
             // 2. Xử lý cho bút và highlight JSON
             if (data.quiz_info.mode_pen) {
                 QUIZ_MODE_PEN = data.quiz_info.mode_pen;
-                //console.log("✅ Đã cập nhật cấu hình QUIZ_MODE_CSV", QUIZ_MODE_CSV);
+                console.log("✅ Đã cập nhật cấu hình QUIZ_MODE_CSV", QUIZ_MODE_CSV);
+                applyQuizModePen();
             }
 
             // 2. Xử lý ẩn/hiện nút xuất CSV ngay lập tức dựa trên cấu hình JSON
@@ -3305,6 +3306,21 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 });
+// Hàm kiểm tra và bật/tắt nút nháp theo cấu hình thực tế
+function applyQuizModePen() {
+    const btnContainer = document.getElementById("main-scratch-btn-container");
+    if (btnContainer) {
+        if (QUIZ_MODE_PEN === true) {
+            btnContainer.style.display = "flex"; // Hiện nút nháp
+            
+            // Kích hoạt lại tính năng kéo thả
+            makeElementDraggable(document.getElementById("main-scratch-btn-container"), document.getElementById("scratch-drag-handle"));
+            makeElementDraggable(document.getElementById("scratchpad-tools"), document.querySelector(".tools-drag-handle"));
+        } else {
+            btnContainer.style.display = "none"; // Ẩn nút nháp
+        }
+    }
+}
 //END 0621
     </script>
 </body>
