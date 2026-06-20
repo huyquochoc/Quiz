@@ -263,7 +263,7 @@
         }
         .intro-content-container p { font-size: 1.2em; }
         .intro-content-container ul { text-align: left; }
-        /* Mới thêm nút đổi size */
+        /* Mới thêm nút đổi size - KHÁC KIA CHỖ NÀY  FONT SIZE ANH VĂN  1.5*/
         :root { --question-font-size: clamp(14px, 2.2vw, 26px);}
         .question p,
         .question-text,
@@ -538,7 +538,7 @@
           <!-- 281 -->
           <input type="text" id="fullName" placeholder="Họ và tên" autocomplete="off">
           <input type="text" id="className" placeholder="Lớp" required autocomplete="off">
-          <input type="text" id="shoolName" placeholder="Tên Trường" required autocomplete="off">
+          <input type="text" id="shoolName" placeholder="Số báo danh" required autocomplete="off">
           <!-- 271 -->
           <div id="password-section" style="display: none; width: 50%;">
             <input type="text" id="quizPasswordInput" placeholder="Nhập mật khẩu đề thi" autocomplete="new-password">
@@ -764,7 +764,7 @@ async function loadData() {
             if (data.quiz_info.mode_pen) {
                 QUIZ_MODE_PEN = data.quiz_info.mode_pen;
                 console.log("✅ Đã cập nhật cấu hình QUIZ_MODE_PEN", QUIZ_MODE_PEN);
-                applyQuizModePen();
+                //applyQuizModePen();
             }
 
             // 2. Xử lý ẩn/hiện nút xuất CSV ngay lập tức dựa trên cấu hình JSON
