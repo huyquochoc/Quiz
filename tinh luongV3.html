@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>NNH</title>
+<style>
+    body {
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #e0f2ff, #f7fbff);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;   /* ← đổi chỗ này */
+    padding-top: 40px;         /* ← sát lên nhưng vẫn thoáng */
+    }
+    .card {
+        background: white;
+        padding: 25px 30px;
+        border-radius: 14px;
+        width: 360px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #003366;
+    }
+    label {
+        font-weight: 600;
+        margin-top: 12px;
+        display: block;
+    }
+    input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+    }
+    button {
+        width: 100%;
+        margin-top: 20px;
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        background: #0078d7;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #005fa3;
+    }
+    .result {
+        margin-top: 20px;
+        background: #f2f8ff;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 15px;
+    }
+    .money {
+        font-weight: bold;
+        color: #b30000;
+        float: right;
+    }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</style>
+</head>
+
+<body>
+<div class="card">
+    <h2>TÍNH THỬ XEM</h2>
+    <h2>(version 3-Mức lương mới 2530)</h2>
+
+    <label> Hệ số lương, ví dụ: 4.68</label>
+    <input id="A" type="number" step="0.01" value="4.68">
+
+    <label>Phụ cấp chức vụ, ví dụ: 0.25 </label>
+    <input id="C" type="number" step="0.01" value="0">
+
+    <label>Thâm niên nghề (Thường là đi dạy mấy năm -1 năm tập sự), ví dụ: 19 (không đánh %)</label>
+    <input id="I" type="number" value="19">
+
+    <label>Phụ cấp thâm niên vượt khung nếu có, ví dụ:7 (không đánh %)</label>
+    <input id="G" type="number" value="0">
+
+    <label>Phụ cấp độc hại, ví dụ: 0.2 </label>
+    <input id="E" type="number" value="0">
+
+    <button onclick="tinhLuong()">TÍNH LƯƠNG</button>
+
+    <div class="result">
+        <div>Nộp bảo hiểm: <span id="M" class="money">0 đ</span></div>
+        <div>Thực nhận: <span id="N" class="money">0 đ</span></div>
+    </div>
+</div>
+
+<script>
+function tinhLuong() {
+    const MLCS = 2530000;
+
+    let A = parseFloat(document.getElementById("A").value) || 0;
+    let C = parseFloat(document.getElementById("C").value) || 0;
+    let E = parseFloat(document.getElementById("E").value) || 0;
+    let G = parseFloat(document.getElementById("G").value) || 0;
+    let I = parseFloat(document.getElementById("I").value) || 0;
+
+    let B = A * MLCS;
+    let D = C * MLCS;
+    let F = E * MLCS
+    let H = B * G / 100;
+    let J = (B + D + H) * I / 100;
+    let K = (B + D + H) * 0.7;
+    let L = 0.3 * MLCS;
+    let M = Math.round((B + D + H + J) * 10.5 / 100);
+    let N = Math.round(B + D + F +  H + J + K + L - M);
+
+    document.getElementById("M").innerText = M.toLocaleString("vi-VN") + " đ";
+    document.getElementById("N").innerText = N.toLocaleString("vi-VN") + " đ";
+}
+</script>
+</body>
+</html>
