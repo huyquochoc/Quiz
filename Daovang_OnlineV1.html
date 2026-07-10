@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đào Vàng Tri Thức</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght=400;600;700;800;900&display=swap');
+    * { box-sizing: border-box; }
+    body { font-family: 'Nunito', system-ui, sans-serif; background:#1a1205; color:#fff; min-height:100vh; overflow:hidden; }
+    mjx-container { max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; }
+    mjx-container > svg { max-width: 100%; height: auto; }
+    .q-img { max-width: 100%; max-height: 240px; display: inline-block; margin: 6px 0; border-radius: 8px; }
+    
+    .hud { height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 18px;
+      background:linear-gradient(180deg,#f6c34a,#e09b1a); color:#3a2400; font-weight:900; }
+    .hud .grp { display:flex; gap:18px; align-items:center; }
+    .hud .val { color:#7a1f00; }
+    .hud .money { color:#0a6b1f; }
+    .hbtn { background:#fff3; border:2px solid #3a2400; color:#3a2400; border-radius:10px; padding:4px 12px; cursor:pointer; font-weight:900; }
+    #stage { position:relative; width:100vw; height:calc(100vh - 60px); }
+    #cv { display:block; width:100%; height:100%; }
+
+    .ov { position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:#1a1205cc; z-index:20; padding:18px; }
+    .panel { background:linear-gradient(180deg,#fff7e6,#ffe9b8); color:#3a2400; border:4px solid #c98a12; border-radius:20px;
+      max-width:560px; width:100%; padding:24px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .panel h2 { font-size:26px; font-weight:900; margin:6px 0; }
+    
+    /* Options styling */
+    .opt { width:100%; text-align:left; display:flex; align-items:center; gap:12px; padding:12px 16px; margin:8px 0;
+      background:#fff; border:2px solid #e0c184; border-radius:12px; cursor:pointer; font-weight:700; color:#3a2400; }
+    .opt:hover:not(:disabled){ background:#fff3d6; }
+    .opt .k { width:34px; height:34px; border-radius:999px; background:#e0c184; color:#3a2400; display:flex; align-items:center; justify-content:center; font-weight:900; shrink:0; }
+    .opt.sel { border-color:#d9890f; background:#ffe9b8; }
+    .opt.correct { border-color:#16a34a; background:#dcfce7; } .opt.correct .k{ background:#16a34a; color:#fff; }
+    .opt.wrong { border-color:#dc2626; background:#fee2e2; } .opt.wrong .k{ background:#dc2626; color:#fff; }
+    
+    /* Type 2 Specific Row Styling */
+    .t2-row { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 10px 16px; margin: 6px 0; border: 2px solid #e0c184; border-radius: 12px; font-weight: 700; }
+    .t2-btn { padding: 6px 16px; border: 2px solid #c98a12; border-radius: 8px; font-weight: 800; background: #fff; cursor: pointer; }
+    .t2-btn.sel-true { background: #16a34a; color: #fff; border-color: #16a34a; }
+    .t2-btn.sel-false { background: #dc2626; color: #fff; border-color: #dc2626; }
+    .t2-row.correct { border-color: #16a34a; background: #dcfce7; }
+    .t2-row.wrong { border-color: #dc2626; background: #fee2e2; }
+
+    /* Type 3 Input Styling */
+    .t3-input { width: 100%; padding: 12px; border: 2px solid #e0c184; border-radius: 12px; font-size: 18px; font-weight: 700; text-align: center; margin: 12px 0; color: #3a2400; }
+    .t3-input:focus { outline: none; border-color: #c98a12; }
+
+    .btn { padding:12px 28px; border-radius:999px; border:none; font-weight:900; cursor:pointer; font-size:17px;
+      background:linear-gradient(90deg,#f6c34a,#e09b1a); color:#3a2400; }
+    .btn:hover{ filter:brightness(1.06); }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .hint { color:#7a5b12; margin:6px 0 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="hud">
+    <div class="grp">
+      <div>Tiền: <span class="money" id="money">$0</span></div>
+      <div>Mục tiêu: <span class="val" id="goal">$0</span></div>
+    </div>
+    <div class="grp">
+      <div>TG: <span class="val" id="time">0</span></div>
+      <div>Câu: <span id="caught">0</span>/<span id="total">0</span></div>
+      <button class="hbtn" onclick="toggleFullscreen()">⛶ Toàn màn hình</button>
+    </div>
+  </div>
+
+  <div id="stage">
+    <canvas id="cv"></canvas>
+
+    <div class="ov" id="loading-screen" style="display: flex;">
+      <div class="panel">
+        <div style="font-size:50px" class="animate-spin inline-block">⏳</div>
+        <h2>Đang lấy dữ liệu câu hỏi trực tuyến...</h2>
+        <p class="hint" id="loading-status">Vui lòng đợi hệ thống kết nối và tải câu hỏi từ Gist.</p>
+      </div>
+    </div>
+
+    <div class="ov" id="start">
+      <div class="panel">
+        <div style="font-size:60px">⛏️</div>
+        <h2 id="start-title">Đào Vàng Tri Thức</h2>
+        <p class="hint">Bấm chuột hoặc <b>Space</b> để thả móc. Trúng <b style="color:#c98a12">vàng</b> hoặc <b style="color:#1f93c7">💎 kim cương</b> sẽ hiện câu hỏi — đúng mới ăn tiền; câu kim cương đúng được <b>nhân đôi</b>. Coi chừng <b style="color:#c0392b">💣 bom</b> — trúng là nổ, trừ điểm! Đạt mục tiêu trước khi hết giờ.</p>
+        <button class="btn" onclick="beginGame()">▶ Bắt đầu</button>
+      </div>
+    </div>
+
+    <div class="ov" id="quiz">
+      <div class="panel">
+        <div style="font-weight:900; color:#c98a12; margin-bottom:6px">💰 Cục vàng trị giá <span id="q-val">$0</span></div>
+        <div id="q-text" style="font-size:18px; margin-bottom:8px; font-weight: 700;"></div>
+        
+        <div id="q-container" class="max-h-[350px] overflow-y-auto px-1"></div>
+        
+        <div id="q-result" style="display:none; margin:10px 0; font-weight:900;"></div>
+        <button class="btn mt-4" id="q-confirm" disabled onclick="submitAnswer()">Xác nhận</button>
+        <button class="btn mt-4" id="q-next" style="display:none" onclick="closeQuiz()">Tiếp tục →</button>
+      </div>
+    </div>
+
+    <div class="ov" id="end">
+      <div class="panel">
+        <div id="end-emoji" style="font-size:60px">🏆</div>
+        <h2 id="end-title"></h2>
+        <div id="end-detail" style="font-size:18px; margin:8px 0 16px"></div>
+        <button class="btn" onclick="resetGame()">🔄 Chơi lại</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── CẤU HÌNH CỐ ĐỊNH CỦA GAME ──
+    const TIME = 1200000000;           // Thời gian chơi mặc định cố định: 120 giây
+    const GOAL_PCT = 60;        // Mục tiêu cần đạt: 60% tổng số điểm trên bản đồ
+    const BOMB_PENALTY = 50;    // Điểm trừ khi dẫm phải bom: 50 xu
+
+    const XOR_KEY = "MixEasy_2026"; // Khóa giải mã chuẩn hệ thống
+
+    let QUESTIONS = []; // Mảng chứa câu hỏi
+
+    // Hàm giải mã chuẩn hóa Base64 + XOR trùng khớp hoàn toàn với OnlineV7
+    function decryptData(encodedStr, key) {
+      try {
+        let decodedBase64 = atob(encodedStr);
+        let result = "";
+        for (let i = 0; i < decodedBase64.length; i++) {
+          let charCode = decodedBase64.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+          result += String.fromCharCode(charCode);
+        }
+        return result;
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    // Chuyển đổi cấu trúc JSON lồng nhau (type1, type2, type3) thành mảng phẳng cho game
+    function flattenQuizData(data) {
+      let result = [];
+      ['type1', 'type2', 'type3'].forEach(type => {
+        if (data[type] && Array.isArray(data[type])) {
+          data[type].forEach(subArr => {
+            if (subArr && subArr[0]) {
+              result.push(subArr[0]);
+            }
+          });
+        }
+      });
+      return result.sort((a, b) => a.q_num - b.q_num);
+    }
+
+    // Tiến hành kết nối internet để lấy dữ liệu câu hỏi từ Gist khi tải trang
+    window.addEventListener('DOMContentLoaded', async () => {
+      const dataParam = getQueryParam('data');
+      if (!dataParam) {
+        document.getElementById('loading-status').innerHTML = "<b style='color:red;'>Lỗi: Thiếu tham số dữ liệu (?data=...) trên đường dẫn URL!</b>";
+        return;
+      }
+
+      // Xử lý chuỗi và giải mã đúng theo chuẩn hóa OnlineV7
+      const cleanData = dataParam.split('-')[0];
+      const realJsonUrl = decryptData(cleanData, XOR_KEY);
+
+      if (!realJsonUrl || !realJsonUrl.startsWith('http')) {
+        document.getElementById('loading-status').innerHTML = "<b style='color:red;'>Lỗi: Giải mã liên kết thất bại hoặc sai khóa bảo mật!</b>";
+        return;
+      }
+
+      try {
+        const response = await fetch(realJsonUrl);
+        if (!response.ok) throw new Error("Không thể kết nối lấy file từ Gist");
+        const quizData = await response.json();
+
+        // Chỉ lấy dữ liệu câu hỏi
+        QUESTIONS = flattenQuizData(quizData);
+        
+        let customTitle = "Đào Vàng Tri Thức";
+        if (quizData.quiz_info && (quizData.quiz_info.tenBaiKiemTra || quizData.quiz_info.title)) {
+          customTitle = quizData.quiz_info.tenBaiKiemTra || quizData.quiz_info.title;
+        }
+
+        // Tắt màn hình chờ, chuyển sang màn hình bắt đầu game
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('start-title').textContent = customTitle;
+        document.getElementById('total').textContent = QUESTIONS.length;
+        document.getElementById('start').style.display = 'flex';
+
+      } catch (err) {
+        document.getElementById('loading-status').innerHTML = "<b style='color:red;'>Lỗi khi tải hoặc đồng bộ dữ liệu: " + err.message + "</b>";
+      }
+    });
+
+    // ── TOÀN BỘ CƠ CHẾ VÀ LOGIC HOẠT ĐỘNG CỦA GAME ──
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(()=>{}); } 
+      else { document.exitFullscreen(); }
+    }
+    function typeset(el) {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        try { window.MathJax.typesetClear && window.MathJax.typesetClear(el ? [el] : undefined); } catch(e){}
+        return window.MathJax.typesetPromise(el ? [el] : undefined).catch(()=>{});
+      }
+      return Promise.resolve();
+    }
+
+    const LETTERS=['A','B','C','D','E','F'];
+    const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+    const $=function(id){return document.getElementById(id);};
+
+    let W=0,H=0;
+    function resize(){ const s=document.getElementById('stage'); W=cv.width=s.clientWidth; H=cv.height=s.clientHeight; }
+    window.addEventListener('resize', resize); resize();
+
+    let items=[], money=0, caught=0, timeLeft=TIME, timer=null;
+    let phase='idle'; 
+    let angle=0, t0=0, length=70, grabbed=null;
+    let currentAnswerState = null; 
+
+    const PIVOT=function(){ return {x:W/2, y:46}; };
+    const SWING_LEN=70, MAXA=1.15, SWING_SPEED=1.6, SHOOT_SPEED=13;
+    const VALUES=[100,200,300];
+    const DIAMOND_VALUE=300;     
+
+    function buildItems(){
+      items=[];
+      const total = QUESTIONS.length;
+      if(total === 0) return;
+      const top=130, bottom=H-46, left=50, right=W-50;
+      function place(r){
+        let x,y,ok=false,tries=0;
+        do{ x=left+Math.random()*(right-left); y=top+Math.random()*(bottom-top);
+          ok=items.every(function(o){ return Math.hypot(o.x-x,o.y-y) > (o.r+r+14); }); tries++;
+        } while(!ok && tries<200);
+        return {x,y};
+      }
+      for(let i=0; i<total; i++){
+        const isDia = (i % 3 === 2); 
+        const value = isDia ? DIAMOND_VALUE : VALUES[i%VALUES.length];
+        const r = isDia ? 18 : 16+value/14;
+        const p=place(r);
+        items.push({x:p.x,y:p.y,r,value,qi:i,type:isDia?'diamond':'gold',gone:false});
+      }
+      const bombs=Math.max(1, Math.floor(total/3));
+      for(let i=0;i<bombs;i++){
+        const r=17; const p=place(r);
+        items.push({x:p.x,y:p.y,r,value:0,qi:null,type:'bomb',gone:false});
+      }
+    }
+
+    function goalAmount(){
+      const tot=QUESTIONS.reduce(function(s,_,i){
+        return s + (i%3===2 ? DIAMOND_VALUE*2 : VALUES[i%VALUES.length]);
+      },0);
+      return Math.round(tot*GOAL_PCT/100);
+    }
+    let GOAL=0;
+
+    function drawMiner(p){
+      ctx.fillStyle='#1f6feb'; ctx.fillRect(p.x-16, p.y-4, 32, 30);
+      ctx.strokeStyle='#1f6feb'; ctx.lineWidth=7; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(p.x-9,p.y+6); ctx.lineTo(p.x+4,p.y+16); ctx.stroke();
+      ctx.fillStyle='#f2c89b'; ctx.beginPath(); ctx.arc(p.x, p.y-14, 13, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='#f6c34a'; ctx.beginPath(); ctx.arc(p.x, p.y-18, 14, Math.PI, 2*Math.PI); ctx.fill();
+      ctx.fillRect(p.x-19, p.y-19, 38, 4);
+      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(p.x, p.y-28, 3, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='#5b3a16'; ctx.beginPath(); ctx.arc(p.x, p.y+2, 7, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='#f6c34a'; ctx.fillRect(p.x-22, p.y+8, 44, 5);
+    }
+    let booms=[]; 
+    function addBoom(x,y,text){ booms.push({x,y,age:0,text:text||''}); }
+
+    function drawItem(o){
+      if(o.gone) return;
+      if(o.type==='gold'){
+        const g=ctx.createRadialGradient(o.x-o.r*0.3,o.y-o.r*0.3,o.r*0.2,o.x,o.y,o.r);
+        g.addColorStop(0,'#fff3b0'); g.addColorStop(.5,'#ffd83d'); g.addColorStop(1,'#c98a12');
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(o.x,o.y,o.r,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#9a6a0d'; ctx.lineWidth=2; ctx.stroke();
+      } else if(o.type==='diamond'){
+        const r=o.r;
+        const g=ctx.createLinearGradient(o.x-r,o.y-r,o.x+r,o.y+r);
+        g.addColorStop(0,'#e6fbff'); g.addColorStop(.5,'#5fd8ff'); g.addColorStop(1,'#1f93c7');
+        ctx.fillStyle=g; ctx.strokeStyle='#0e6a93'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(o.x, o.y-r); ctx.lineTo(o.x+r, o.y-r*0.25); ctx.lineTo(o.x, o.y+r); ctx.lineTo(o.x-r, o.y-r*0.25);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else { 
+        const g=ctx.createRadialGradient(o.x-o.r*0.35,o.y-o.r*0.35,o.r*0.2,o.x,o.y,o.r);
+        g.addColorStop(0,'#5a5f66'); g.addColorStop(1,'#15181c');
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(o.x,o.y,o.r,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#8a5a1a'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(o.x+o.r*0.4,o.y-o.r*0.7); ctx.quadraticCurveTo(o.x+o.r,o.y-o.r*1.4,o.x+o.r*0.2,o.y-o.r*1.5); ctx.stroke();
+        ctx.fillStyle='#ffb020'; ctx.beginPath(); ctx.arc(o.x+o.r*0.2,o.y-o.r*1.55,3,0,Math.PI*2); ctx.fill();
+      }
+    }
+
+    function drawBooms(){
+      for(const b of booms){
+        b.age++; const a=Math.max(0,1-b.age/20);
+        ctx.strokeStyle='rgba(255,110,0,'+a+')'; ctx.lineWidth=5; ctx.beginPath(); ctx.arc(b.x,b.y,b.age*4,0,Math.PI*2); ctx.stroke();
+        if(b.text){ ctx.fillStyle='rgba(255,60,60,'+a+')'; ctx.font='900 22px Nunito,sans-serif'; ctx.textAlign='center'; ctx.fillText(b.text, b.x, b.y-30-b.age); }
+      }
+      booms=booms.filter(function(b){ return b.age<22; });
+    }
+    function tip(){ const p=PIVOT(); return { x:p.x+Math.sin(angle)*length, y:p.y+Math.cos(angle)*length }; }
+    
+    function draw(){
+      const sky=ctx.createLinearGradient(0,0,0,90); sky.addColorStop(0,'#3a2a12'); sky.addColorStop(1,'#5a3d18');
+      ctx.fillStyle=sky; ctx.fillRect(0,0,W,90);
+      const dirt=ctx.createLinearGradient(0,90,0,H); dirt.addColorStop(0,'#c2802f'); dirt.addColorStop(1,'#8a5418');
+      ctx.fillStyle=dirt; ctx.fillRect(0,90,W,H-90);
+
+      items.forEach(drawItem); drawBooms();
+      const p=PIVOT(), tp=tip();
+      drawMiner(p);
+
+      ctx.strokeStyle='#222'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(tp.x,tp.y); ctx.stroke();
+      ctx.fillStyle='#cfd2d6'; ctx.strokeStyle='#222'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(tp.x, tp.y, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); 
+    }
+
+    function loop(ts){
+      if(phase==='over') return;
+      if(!t0) t0=ts;
+      const tsec=(ts-t0)/1000;
+      
+      if(phase==='swing'){ 
+        const WIDE_MAXA = 1.53; 
+        angle = WIDE_MAXA * Math.sin(tsec * SWING_SPEED); 
+        length = SWING_LEN; 
+      }
+      else if(phase==='shoot'){
+        length += SHOOT_SPEED; 
+        const tp = tip();
+        const hit = items.find(function(o){ return !o.gone && Math.hypot(o.x-tp.x,o.y-tp.y) <= o.r; });
+        
+        if(hit){ grabbed = hit; phase = 'retract'; }
+        else if(tp.x < -20 || tp.x > W + 20 || tp.y > H + 20 || length > (Math.hypot(W, H) + 100)){ 
+          phase = 'retract'; 
+        }
+      } else if(phase==='retract'){
+        let sp = 8; 
+        if(grabbed){ sp = Math.max(2.2, 9 - grabbed.value/45); }
+        length -= sp; 
+        if(grabbed){ const tp=tip(); grabbed.x=tp.x; grabbed.y=tp.y; }
+        if(length <= SWING_LEN){ length=SWING_LEN; resolveGrab(); }
+      }
+      
+      if(phase!=='paused') draw();
+      requestAnimationFrame(loop);
+    }
+
+    function resolveGrab(){
+      const g=grabbed; grabbed=null;
+      if(!g){ phase='swing'; return; }
+      if(g.type==='bomb'){
+        g.gone=true; money=Math.max(0, money-BOMB_PENALTY);
+        addBoom(g.x,g.y,'-$'+BOMB_PENALTY); $('money').textContent='$'+money;
+        phase='swing'; return;
+      }
+      phase='paused'; openQuiz(g);
+    }
+
+    function openQuiz(g){
+      curGold=g; 
+      const q = QUESTIONS[g.qi];
+      const isDia = g.type==='diamond';
+      
+      $('q-val').innerHTML = isDia ? '💎 KIM CƯƠNG — ĐÚNG ĐƯỢC NHÂN ĐÔI: tối đa $'+(g.value*2) : '$'+g.value;
+      $('q-text').innerHTML = `Câu số ${q.q_num}: ${q.question}`;
+      
+      const container = $('q-container');
+      container.innerHTML = '';
+      
+      $('q-result').style.display='none';
+      $('q-confirm').style.display='';
+      $('q-confirm').disabled = true;
+      $('q-next').style.display='none';
+
+      if (q.type === 'type1') {
+        currentAnswerState = { userSelection: null };
+        q.answers.forEach((ans, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'opt';
+          btn.innerHTML = `<span class="k">${LETTERS[i]}</span><span class="tx">${ans.text}</span>`;
+          btn.onclick = function() {
+            currentAnswerState.userSelection = i;
+            Array.from(container.children).forEach(child => child.classList.remove('sel'));
+            btn.classList.add('sel');
+            $('q-confirm').disabled = false;
+          };
+          container.appendChild(btn);
+        });
+
+      } else if (q.type === 'type2') {
+        currentAnswerState = { userSelections: new Array(q.options.length).fill(null) };
+        
+        q.options.forEach((opt, i) => {
+          const row = document.createElement('div');
+          row.className = 't2-row';
+          row.innerHTML = `<div class="text-left pr-4">${opt.text}</div>`;
+          
+          const btnGroup = document.createElement('div');
+          btnGroup.className = 'flex gap-2 shrink-0';
+          
+          const btnTrue = document.createElement('button');
+          btnTrue.className = 't2-btn'; btnTrue.textContent = 'Đúng';
+          const btnFalse = document.createElement('button');
+          btnFalse.className = 't2-btn'; btnFalse.textContent = 'Sai';
+          
+          btnTrue.onclick = () => {
+            currentAnswerState.userSelections[i] = "Đ";
+            btnTrue.className = 't2-btn sel-true';
+            btnFalse.className = 't2-btn';
+            checkType2Completion();
+          };
+          btnFalse.onclick = () => {
+            currentAnswerState.userSelections[i] = "S";
+            btnTrue.className = 't2-btn';
+            btnFalse.className = 't2-btn sel-false';
+            checkType2Completion();
+          };
+          
+          btnGroup.appendChild(btnTrue);
+          btnGroup.appendChild(btnFalse);
+          row.appendChild(btnGroup);
+          container.appendChild(row);
+        });
+
+        function checkType2Completion() {
+          const completed = currentAnswerState.userSelections.every(val => val !== null);
+          $('q-confirm').disabled = !completed;
+        }
+
+      } else if (q.type === 'type3') {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 't3-input';
+        input.placeholder = 'Nhập câu trả lời của bạn tại đây...';
+        input.oninput = function() {
+          $('q-confirm').disabled = input.value.trim() === '';
+        };
+        container.appendChild(input);
+        currentAnswerState = { inputElement: input };
+      }
+
+      $('quiz').style.display='flex';
+      typeset($('quiz'));
+    }
+
+    function submitAnswer() {
+      const q = QUESTIONS[curGold.qi];
+      let isCorrect = false;
+      const container = $('q-container');
+      
+      if (q.type === 'type1') {
+        const sel = currentAnswerState.userSelection;
+        isCorrect = (q.answers[sel].is_correct === 1);
+        
+        Array.from(container.children).forEach((btn, i) => {
+          btn.disabled = true;
+          if (q.answers[i].is_correct === 1) btn.classList.add('correct');
+          else if (i === sel) btn.classList.add('wrong');
+        });
+
+      } else if (q.type === 'type2') {
+        const sels = currentAnswerState.userSelections;
+        let allTrue = true;
+        
+        Array.from(container.children).forEach((row, i) => {
+          Array.from(row.querySelectorAll('.t2-btn')).forEach(b => b.disabled = true);
+          const correctAns = q.options[i].correct_answer; 
+          if (sels[i] === correctAns) {
+            row.classList.add('correct');
+          } else {
+            row.classList.add('wrong');
+            allTrue = false;
+          }
+        });
+        isCorrect = allTrue; 
+
+      } else if (q.type === 'type3') {
+        let userText = currentAnswerState.inputElement.value.trim();
+        currentAnswerState.inputElement.disabled = true;
+        
+        let normalizedUser = userText.toLowerCase().replace(/,/g, '.');
+        let normalizedCorrect = q.correct_answer.toLowerCase().replace(/,/g, '.');
+        
+        isCorrect = (normalizedUser === normalizedCorrect);
+        
+        const ansDiv = document.createElement('div');
+        ansDiv.className = 'mt-2 font-bold ' + (isCorrect ? 'text-green-600' : 'text-red-600');
+        ansDiv.innerHTML = `Đáp án chính xác là: <b>${q.correct_answer}</b>`;
+        container.appendChild(ansDiv);
+      }
+
+      const r = $('q-result');
+      r.style.display = 'block';
+      const isDia = curGold.type === 'diamond';
+      
+      if (isCorrect) {
+        const gain = isDia ? curGold.value * 2 : curGold.value;
+        money += gain; r.style.color = '#0a6b1f';
+        r.textContent = isDia ? (`💎 Chính xác! Nhân đôi thưởng: +$${gain}`) : (`🎉 Chính xác! Bạn nhận được +$${gain}`);
+      } else {
+        r.style.color = '#b91c1c';
+        r.textContent = isDia ? '😔 Bạn đã trả lời sai! Mất viên kim cương.' : '😔 Bạn đã trả lời sai! Mất cục vàng.';
+      }
+
+      caught++; curGold.gone = true;
+      $('money').textContent = '$' + money;
+      $('caught').textContent = caught;
+      $('q-confirm').style.display = 'none';
+      $('q-next').style.display = '';
+      
+      typeset(container);
+    }
+
+    function closeQuiz(){
+      $('quiz').style.display='none';
+      if(caught >= QUESTIONS.length){ end(money >= GOAL); return; }
+      phase='swing';
+    }
+
+    function shoot(){ if(phase==='swing') phase='shoot'; }
+    cv.addEventListener('pointerdown', shoot);
+    window.addEventListener('keydown', function(e){
+      if(e.code==='Space'||e.code==='ArrowDown'){ e.preventDefault(); shoot(); }
+    });
+
+    function startTimer(){
+      clearInterval(timer);
+      timer=setInterval(function(){
+        if(phase==='paused') return;
+        timeLeft--; $('time').textContent=timeLeft;
+        if(timeLeft<=0){ clearInterval(timer); end(money>=GOAL); }
+      },1000);
+    }
+
+    function end(win){
+      phase='over'; clearInterval(timer);
+      $('end-emoji').textContent = win?'🏆':'⏰';
+      $('end-title').textContent = win?'ĐẠT MỤC TIÊU!':'HẾT GIỜ!';
+      $('end-detail').innerHTML = 'Tổng tiền: <b>$'+money+'</b> / Mục tiêu $'+GOAL+'<br/>Số câu đã đào: '+caught+'/'+QUESTIONS.length+' câu';
+      $('end').style.display='flex';
+    }
+
+    function beginGame(){
+      $('start').style.display='none';
+      resize(); buildItems(); GOAL=goalAmount();
+      money=0; caught=0; timeLeft=TIME; phase='swing'; t0=0; length=SWING_LEN;
+      $('money').textContent='$0'; $('goal').textContent='$'+GOAL;
+      $('time').textContent=timeLeft; $('caught').textContent='0'; $('total').textContent=QUESTIONS.length;
+      startTimer(); requestAnimationFrame(loop);
+    }
+    function resetGame(){ $('end').style.display='none'; beginGame(); }
+
+  </script>
+</body>
+</html>
