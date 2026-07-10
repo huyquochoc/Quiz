@@ -39,7 +39,6 @@
       max-width:560px; width:100%; padding:24px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     .panel h2 { font-size:26px; font-weight:900; margin:6px 0; }
     
-    /* Options styling */
     .opt { width:100%; text-align:left; display:flex; align-items:center; gap:12px; padding:12px 16px; margin:8px 0;
       background:#fff; border:2px solid #e0c184; border-radius:12px; cursor:pointer; font-weight:700; color:#3a2400; }
     .opt:hover:not(:disabled){ background:#fff3d6; }
@@ -48,7 +47,6 @@
     .opt.correct { border-color:#16a34a; background:#dcfce7; } .opt.correct .k{ background:#16a34a; color:#fff; }
     .opt.wrong { border-color:#dc2626; background:#fee2e2; } .opt.wrong .k{ background:#dc2626; color:#fff; }
     
-    /* Type 2 Specific Row Styling */
     .t2-row { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 10px 16px; margin: 6px 0; border: 2px solid #e0c184; border-radius: 12px; font-weight: 700; }
     .t2-btn { padding: 6px 16px; border: 2px solid #c98a12; border-radius: 8px; font-weight: 800; background: #fff; cursor: pointer; }
     .t2-btn.sel-true { background: #16a34a; color: #fff; border-color: #16a34a; }
@@ -56,7 +54,6 @@
     .t2-row.correct { border-color: #16a34a; background: #dcfce7; }
     .t2-row.wrong { border-color: #dc2626; background: #fee2e2; }
 
-    /* Type 3 Input Styling */
     .t3-input { width: 100%; padding: 12px; border: 2px solid #e0c184; border-radius: 12px; font-size: 18px; font-weight: 700; text-align: center; margin: 12px 0; color: #3a2400; }
     .t3-input:focus { outline: none; border-color: #c98a12; }
 
@@ -75,6 +72,8 @@
       <div>Mục tiêu: <span class="val" id="goal">$0</span></div>
     </div>
     <div class="grp">
+      <button id="topSubmitBtn" class="hbtn !bg-green-600 !text-white !border-green-800" style="display: none;" onclick="openSubmitModal()">📤 Nộp kết quả</button>
+      
       <div>TG: <span class="val" id="time">0</span></div>
       <div>Câu: <span id="caught">0</span>/<span id="total">0</span></div>
       <button class="hbtn" onclick="toggleFullscreen()">⛶ Toàn màn hình</button>
@@ -124,17 +123,41 @@
     </div>
   </div>
 
+  <div class="ov" id="submit-modal" style="z-index: 30;">
+      <div class="panel">
+        <div style="font-size:50px">📝</div>
+        <h2>Xác nhận nộp điểm số</h2>
+        <p class="hint">Số tiền vàng hiện tại bạn kiếm được sẽ gửi về hệ thống.</p>
+        
+        <div class="mt-4 text-left max-w-xs mx-auto text-[#3a2400]">
+          <div class="mb-2">
+            <label class="block font-bold text-sm mb-1">Họ và tên học sinh:</label>
+            <input type="text" id="studentName" class="w-full p-2 border-2 border-amber-400 rounded-lg font-semibold focus:outline-none focus:border-amber-600" placeholder="Nhập họ tên...">
+          </div>
+          <div class="mb-4">
+            <label class="block font-bold text-sm mb-1">Lớp:</label>
+            <input type="text" id="studentClass" class="w-full p-2 border-2 border-amber-400 rounded-lg font-semibold focus:outline-none focus:border-amber-600" placeholder="Nhập tên lớp...">
+          </div>
+        </div>
+
+        <div class="flex gap-4 justify-center mt-2">
+          <button class="btn !bg-gray-400 !text-white" onclick="closeSubmitModal()">Hủy</button>
+          <button id="submitBtn" class="btn !bg-green-600 !text-white font-black" onclick="finalizeSubmit()">Gửi điểm 📤</button>
+        </div>
+      </div>
+    </div>
+
   <script>
-    // ── CẤU HÌNH CỐ ĐỊNH CỦA GAME ──
-    const TIME = 1200000000;           // Thời gian chơi mặc định cố định: 120 giây
-    const GOAL_PCT = 60;        // Mục tiêu cần đạt: 60% tổng số điểm trên bản đồ
-    const BOMB_PENALTY = 50;    // Điểm trừ khi dẫm phải bom: 50 xu
+    let TIME = 120;
+    const GOAL_PCT = 60;        
+    const BOMB_PENALTY = 50;    
 
-    const XOR_KEY = "MixEasy_2026"; // Khóa giải mã chuẩn hệ thống
+    const XOR_KEY = "MixEasy_2026"; 
 
-    let QUESTIONS = []; // Mảng chứa câu hỏi
+    let QUESTIONS = [];     
+    let SCRIPT_URL = "";    
+    let SHEET_NAME = "General"; 
 
-    // Hàm giải mã chuẩn hóa Base64 + XOR trùng khớp hoàn toàn với OnlineV7
     function decryptData(encodedStr, key) {
       try {
         let decodedBase64 = atob(encodedStr);
@@ -154,7 +177,6 @@
       return urlParams.get(param);
     }
 
-    // Chuyển đổi cấu trúc JSON lồng nhau (type1, type2, type3) thành mảng phẳng cho game
     function flattenQuizData(data) {
       let result = [];
       ['type1', 'type2', 'type3'].forEach(type => {
@@ -169,7 +191,6 @@
       return result.sort((a, b) => a.q_num - b.q_num);
     }
 
-    // Tiến hành kết nối internet để lấy dữ liệu câu hỏi từ Gist khi tải trang
     window.addEventListener('DOMContentLoaded', async () => {
       const dataParam = getQueryParam('data');
       if (!dataParam) {
@@ -177,7 +198,6 @@
         return;
       }
 
-      // Xử lý chuỗi và giải mã đúng theo chuẩn hóa OnlineV7
       const cleanData = dataParam.split('-')[0];
       const realJsonUrl = decryptData(cleanData, XOR_KEY);
 
@@ -191,15 +211,29 @@
         if (!response.ok) throw new Error("Không thể kết nối lấy file từ Gist");
         const quizData = await response.json();
 
-        // Chỉ lấy dữ liệu câu hỏi
         QUESTIONS = flattenQuizData(quizData);
         
         let customTitle = "Đào Vàng Tri Thức";
+        SHEET_NAME = "General"; 
         if (quizData.quiz_info && (quizData.quiz_info.tenBaiKiemTra || quizData.quiz_info.title)) {
           customTitle = quizData.quiz_info.tenBaiKiemTra || quizData.quiz_info.title;
+
+          if (quizData.quiz_info.time_limit) {
+            TIME = Number(quizData.quiz_info.time_limit) * 60; 
+          }
+
+          if (quizData.quiz_info.script_url) {
+            SCRIPT_URL = quizData.quiz_info.script_url;
+            document.getElementById('topSubmitBtn').style.display = 'block';
+          }
+          if (quizData.quiz_info.sheet_name) {
+            SHEET_NAME = quizData.quiz_info.sheet_name;
+          }
         }
 
-        // Tắt màn hình chờ, chuyển sang màn hình bắt đầu game
+        document.title = customTitle;
+        document.getElementById('submitBtn').dataset.sheetName = SHEET_NAME;
+
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('start-title').textContent = customTitle;
         document.getElementById('total').textContent = QUESTIONS.length;
@@ -210,7 +244,6 @@
       }
     });
 
-    // ── TOÀN BỘ CƠ CHẾ VÀ LOGIC HOẠT ĐỘNG CỦA GAME ──
     function toggleFullscreen() {
       if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(()=>{}); } 
       else { document.exitFullscreen(); }
@@ -228,43 +261,82 @@
     const $=function(id){return document.getElementById(id);};
 
     let W=0,H=0;
-    function resize(){ const s=document.getElementById('stage'); W=cv.width=s.clientWidth; H=cv.height=s.clientHeight; }
-    window.addEventListener('resize', resize); resize();
-
     let items=[], money=0, caught=0, timeLeft=TIME, timer=null;
     let phase='idle'; 
     let angle=0, t0=0, length=70, grabbed=null;
     let currentAnswerState = null; 
 
     const PIVOT=function(){ return {x:W/2, y:46}; };
-    const SWING_LEN=70, MAXA=1.15, SWING_SPEED=1.6, SHOOT_SPEED=13;
+    const SWING_LEN=70, SHOOT_SPEED=13, SWING_SPEED=3.2; // Đã thêm biến SWING_SPEED khống chế tốc độ dây quay
     const VALUES=[100,200,300];
     const DIAMOND_VALUE=300;     
+
+    function resize(){ 
+      const s = document.getElementById('stage'); 
+      W = cv.width = s.clientWidth; 
+      H = cv.height = s.clientHeight; 
+      updateItemsScale();
+    }
+    window.addEventListener('resize', resize);
+
+    function updateItemsScale() {
+      if (!items || items.length === 0 || W === 0 || H === 0) return;
+      let baseScale = Math.min(W / 1000, 1); 
+      if (baseScale < 0.55) baseScale = 0.55;
+
+      items.forEach(item => {
+        item.r = item.baseR * baseScale;
+        item.x = 30 + item.pctX * (W - 60);
+        item.y = 140 + item.pctY * (H - 140 - 50);
+      });
+    }
 
     function buildItems(){
       items=[];
       const total = QUESTIONS.length;
       if(total === 0) return;
-      const top=130, bottom=H-46, left=50, right=W-50;
+
+      const mockW = 1000, mockH = 600; 
+      const top=140, bottom=mockH-50, left=30, right=mockW-30;
+
       function place(r){
         let x,y,ok=false,tries=0;
-        do{ x=left+Math.random()*(right-left); y=top+Math.random()*(bottom-top);
-          ok=items.every(function(o){ return Math.hypot(o.x-x,o.y-y) > (o.r+r+14); }); tries++;
+        do{ 
+          x=left+Math.random()*(right-left); 
+          y=top+Math.random()*(bottom-top);
+          ok=items.every(function(o){ return Math.hypot(o.mockX-x,o.mockY-y) > (o.baseR+r+14); }); 
+          tries++;
         } while(!ok && tries<200);
         return {x,y};
       }
+
       for(let i=0; i<total; i++){
         const isDia = (i % 3 === 2); 
         const value = isDia ? DIAMOND_VALUE : VALUES[i%VALUES.length];
-        const r = isDia ? 18 : 16+value/14;
-        const p=place(r);
-        items.push({x:p.x,y:p.y,r,value,qi:i,type:isDia?'diamond':'gold',gone:false});
+        const baseR = isDia ? 18 : 16+value/14;
+        const p=place(baseR);
+        items.push({
+          mockX: p.x, mockY: p.y,
+          pctX: (p.x - 30) / (mockW - 60),
+          pctY: (p.y - 140) / (mockH - 140 - 50),
+          baseR: baseR, r: baseR,
+          value: value, qi: i, type: isDia?'diamond':'gold', gone: false, x: 0, y: 0
+        });
       }
+
       const bombs=Math.max(1, Math.floor(total/3));
       for(let i=0;i<bombs;i++){
-        const r=17; const p=place(r);
-        items.push({x:p.x,y:p.y,r,value:0,qi:null,type:'bomb',gone:false});
+        const baseR=17; 
+        const p=place(baseR);
+        items.push({
+          mockX: p.x, mockY: p.y,
+          pctX: (p.x - 30) / (mockW - 60),
+          pctY: (p.y - 140) / (mockH - 140 - 50),
+          baseR: baseR, r: baseR,
+          value: 0, qi: null, type: 'bomb', gone: false, x: 0, y: 0
+        });
       }
+      updateItemsScale();
     }
 
     function goalAmount(){
@@ -323,6 +395,7 @@
     function tip(){ const p=PIVOT(); return { x:p.x+Math.sin(angle)*length, y:p.y+Math.cos(angle)*length }; }
     
     function draw(){
+      if(W === 0 || H === 0) return; // Đảm bảo không vẽ khi kích thước canvas chưa sẵn sàng
       const sky=ctx.createLinearGradient(0,0,0,90); sky.addColorStop(0,'#3a2a12'); sky.addColorStop(1,'#5a3d18');
       ctx.fillStyle=sky; ctx.fillRect(0,0,W,90);
       const dirt=ctx.createLinearGradient(0,90,0,H); dirt.addColorStop(0,'#c2802f'); dirt.addColorStop(1,'#8a5418');
@@ -543,6 +616,9 @@
     function shoot(){ if(phase==='swing') phase='shoot'; }
     cv.addEventListener('pointerdown', shoot);
     window.addEventListener('keydown', function(e){
+      if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+        return; 
+      }
       if(e.code==='Space'||e.code==='ArrowDown'){ e.preventDefault(); shoot(); }
     });
 
@@ -565,14 +641,85 @@
 
     function beginGame(){
       $('start').style.display='none';
-      resize(); buildItems(); GOAL=goalAmount();
+      resize(); 
+      buildItems(); 
+      GOAL=goalAmount();
       money=0; caught=0; timeLeft=TIME; phase='swing'; t0=0; length=SWING_LEN;
       $('money').textContent='$0'; $('goal').textContent='$'+GOAL;
       $('time').textContent=timeLeft; $('caught').textContent='0'; $('total').textContent=QUESTIONS.length;
       startTimer(); requestAnimationFrame(loop);
     }
     function resetGame(){ $('end').style.display='none'; beginGame(); }
+    
+    function openSubmitModal() {
+      if (phase === 'over') return;
+      let prevPhase = phase;
+      phase = 'paused'; 
+      $('submit-modal').style.display = 'flex';
+      $('submit-modal').dataset.prevPhase = prevPhase;
+    }
 
+    function closeSubmitModal() {
+      $('submit-modal').style.display = 'none';
+      phase = $('submit-modal').dataset.prevPhase || 'swing';
+    }
+
+    function finalizeSubmit() {
+      const submitBtn = document.getElementById('submitBtn');
+      const nameInput = document.getElementById('studentName');
+      const classInput = document.getElementById('studentClass');
+      
+      if (!submitBtn) return;
+      
+      const studentName = nameInput ? nameInput.value.trim() : "";
+      const studentClass = classInput ? classInput.value.trim() : "";
+      
+      if (!studentName || !studentClass) {
+        alert("❌ Vui lòng điền đầy đủ Họ tên và Lớp trước khi nộp điểm!");
+        return;
+      }
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Đang gửi...';
+
+      const payload = {
+        name: studentName,
+        className: studentClass,
+        moneyEarned: money, 
+        quizName: document.getElementById('start-title').textContent || "Đào Vàng Tri Thức",
+        sheetName: SHEET_NAME,
+        timestamp: new Date().toLocaleString('vi-VN')
+      };
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        alert("✅ Đã gửi điểm số thành công!");
+        $('submit-modal').style.display = 'none';
+        
+        const topBtn = document.getElementById('topSubmitBtn');
+        topBtn.disabled = true;
+        topBtn.textContent = 'Đã nộp bài';
+        topBtn.className = "hbtn !bg-gray-500 !text-white cursor-not-allowed";
+        
+        phase = 'over'; 
+        clearInterval(timer);
+        end(money >= GOAL);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("❌ Lỗi: Không thể kết nối tới Google Trang tính.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Thử nộp lại';
+      });
+    }
+
+    // Khởi tạo kích thước ban đầu để đảm bảo Canvas hoạt động mượt mà
+    resize();
   </script>
 </body>
 </html>
