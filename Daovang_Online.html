@@ -72,7 +72,7 @@
       <div>Mục tiêu: <span class="val" id="goal">$0</span></div>
     </div>
     <div class="grp">
-      <button id="topSubmitBtn" class="hbtn !bg-green-600 !text-white !border-green-800" style="display: none;" onclick="openSubmitModal()">Nộp kết quả</button>
+      <button id="topSubmitBtn" class="hbtn !bg-green-600 !text-white !border-green-800" style="display: none;" onclick="openSubmitModal()">📤 Nộp kết quả</button>
       
       <div>TG: <span class="val" id="time">0</span></div>
       <div>Câu: <span id="caught">0</span>/<span id="total">0</span></div>
@@ -124,28 +124,37 @@
   </div>
 
   <div class="ov" id="submit-modal" style="z-index: 30;">
-      <div class="panel">
-        <div style="font-size:50px">📝</div>
-        <h2>Xác nhận nộp điểm số</h2>
-        <p class="hint">Số tiền vàng hiện tại bạn kiếm được sẽ gửi về hệ thống.</p>
-        
-        <div class="mt-4 text-left max-w-xs mx-auto text-[#3a2400]">
-          <div class="mb-2">
-            <label class="block font-bold text-sm mb-1">Họ và tên học sinh:</label>
-            <input type="text" id="studentName" class="w-full p-2 border-2 border-amber-400 rounded-lg font-semibold focus:outline-none focus:border-amber-600" placeholder="Nhập họ tên...">
-          </div>
-          <div class="mb-4">
-            <label class="block font-bold text-sm mb-1">Lớp:</label>
-            <input type="text" id="studentClass" class="w-full p-2 border-2 border-amber-400 rounded-lg font-semibold focus:outline-none focus:border-amber-600" placeholder="Nhập tên lớp...">
-          </div>
+    <div class="panel">
+      <div style="font-size:50px">📝</div>
+      <h2>Xác nhận nộp điểm số</h2>
+      <p class="hint">Số tiền vàng hiện tại bạn kiếm được sẽ gửi về hệ thống.</p>
+      
+      <div class="mt-4 text-left max-w-xs mx-auto text-[#3a2400]">
+        <div class="mb-2">
+          <label class="block font-bold text-sm mb-1">Họ và tên học sinh:</label>
+          <input type="text" id="studentName" class="w-full p-2 border-2 border-amber-400 rounded-lg font-semibold focus:outline-none focus:border-amber-600" placeholder="Nhập họ tên...">
         </div>
-
-        <div class="flex gap-4 justify-center mt-2">
-          <button class="btn !bg-gray-400 !text-white" onclick="closeSubmitModal()">Hủy</button>
-          <button id="submitBtn" class="btn !bg-green-600 !text-white font-black" onclick="finalizeSubmit()">Gửi điểm 📤</button>
+        <div class="mb-4">
+          <label class="block font-bold text-sm mb-1">Lớp:</label>
+          <input type="text" id="studentClass" class="w-full p-2 border-2 border-amber-400 rounded-lg font-semibold focus:outline-none focus:border-amber-600" placeholder="Nhập tên lớp...">
         </div>
       </div>
+
+      <div class="flex gap-4 justify-center mt-2">
+        <button id="cancelSubmitBtn" class="btn !bg-gray-400 !text-white" onclick="closeSubmitModal()">Hủy</button>
+        <button id="submitBtn" class="btn !bg-green-600 !text-white font-black" onclick="finalizeSubmit()">Gửi điểm 📤</button>
+      </div>
     </div>
+  </div>
+
+  <div class="ov" id="success-modal" style="z-index: 40;">
+    <div class="panel !max-w-sm">
+      <div style="font-size:55px" class="animate-bounce">✅</div>
+      <h2 class="!text-green-700 !mt-2">Thông báo</h2>
+      <p class="text-base font-bold text-[#3a2400] my-3">Đã gửi điểm thành công!</p>
+      <button class="btn !bg-green-600 !text-white w-full !py-2" onclick="closeSuccessAndShowEnd()">Đồng ý</button>
+    </div>
+  </div>
 
   <script>
     let TIME = 120;
@@ -267,7 +276,7 @@
     let currentAnswerState = null; 
 
     const PIVOT=function(){ return {x:W/2, y:46}; };
-    const SWING_LEN=70, SHOOT_SPEED=13, SWING_SPEED=2; // Đã thêm biến SWING_SPEED khống chế tốc độ dây quay
+    const SWING_LEN=70, SHOOT_SPEED=13, SWING_SPEED=1.8; // Giảm xuống 1.8 giúp dây xích quay chậm, vừa tầm ngắm của học sinh
     const VALUES=[100,200,300];
     const DIAMOND_VALUE=300;     
 
@@ -395,7 +404,7 @@
     function tip(){ const p=PIVOT(); return { x:p.x+Math.sin(angle)*length, y:p.y+Math.cos(angle)*length }; }
     
     function draw(){
-      if(W === 0 || H === 0) return; // Đảm bảo không vẽ khi kích thước canvas chưa sẵn sàng
+      if(W === 0 || H === 0) return; 
       const sky=ctx.createLinearGradient(0,0,0,90); sky.addColorStop(0,'#3a2a12'); sky.addColorStop(1,'#5a3d18');
       ctx.fillStyle=sky; ctx.fillRect(0,0,W,90);
       const dirt=ctx.createLinearGradient(0,90,0,H); dirt.addColorStop(0,'#c2802f'); dirt.addColorStop(1,'#8a5418');
@@ -458,8 +467,7 @@
       const isDia = g.type==='diamond';
       
       $('q-val').innerHTML = isDia ? '💎 KIM CƯƠNG — ĐÚNG ĐƯỢC NHÂN ĐÔI: tối đa $'+(g.value*2) : '$'+g.value;
-      //$('q-text').innerHTML = `Câu số ${q.q_num}: ${q.question}`;
-      $('q-text').innerHTML = `${q.question}`;
+      $('q-text').innerHTML = `Câu số ${q.q_num}: ${q.question}`;
       
       const container = $('q-container');
       container.innerHTML = '';
@@ -608,21 +616,19 @@
       typeset(container);
     }
 
+    // CHỖ SỬA QUAN TRỌNG: Nếu hết câu, tự mở bảng nộp bài lên ép học sinh điền tên gửi điểm
     function closeQuiz(){
       $('quiz').style.display='none';
-      
-      // CHỖ SỬA: Nếu đã đào hết tất cả các câu hỏi trên màn hình
       if(caught >= QUESTIONS.length){ 
-        // Nếu game có cấu hình Link nộp bài chấm tự động, tự động bật bảng nộp bài lên luôn
         if (SCRIPT_URL) {
+          // Khóa hẳn nút Hủy trong modal nộp bài vì lúc này đã hết câu, bắt buộc phải gửi điểm
+          $('cancelSubmitBtn').style.display = 'none';
           openSubmitModal();
         } else {
-          // Nếu không có cấu hình nộp bài (chơi giải trí), hiện thẳng màn hình kết thúc
           end(money >= GOAL); 
         }
         return; 
       }
-      
       phase='swing';
     }
 
@@ -660,6 +666,7 @@
       money=0; caught=0; timeLeft=TIME; phase='swing'; t0=0; length=SWING_LEN;
       $('money').textContent='$0'; $('goal').textContent='$'+GOAL;
       $('time').textContent=timeLeft; $('caught').textContent='0'; $('total').textContent=QUESTIONS.length;
+      $('cancelSubmitBtn').style.display = ''; // Reset lại nút Hủy nếu chơi ván mới
       startTimer(); requestAnimationFrame(loop);
     }
     function resetGame(){ $('end').style.display='none'; beginGame(); }
@@ -711,19 +718,16 @@
         body: JSON.stringify(payload)
       })
       .then(() => {
-        alert("✅ Đã gửi điểm số thành công!");
+        // CHỖ THAY THẾ ALERT: Ẩn modal nhập thông tin và hiện modal thông báo thành công đẹp mắt
         $('submit-modal').style.display = 'none';
+        $('success-modal').style.display = 'flex';
         
         const topBtn = document.getElementById('topSubmitBtn');
-        if(topBtn) {
+        if (topBtn) {
           topBtn.disabled = true;
           topBtn.textContent = 'Đã nộp bài';
           topBtn.className = "hbtn !bg-gray-500 !text-white cursor-not-allowed";
         }
-        
-        phase = 'over'; 
-        clearInterval(timer);
-        end(money >= GOAL); // Hiện màn hình kết thúc kèm số điểm vinh danh sau khi nộp thành công!
       })
       .catch(error => {
         console.error('Error:', error);
@@ -733,7 +737,14 @@
       });
     }
 
-    // Khởi tạo kích thước ban đầu để đảm bảo Canvas hoạt động mượt mà
+    // CHỖ THÊM MỚI: Khi học sinh bấm nút "Đồng ý" trên bảng thông báo thành công đẹp mắt
+    function closeSuccessAndShowEnd() {
+      $('success-modal').style.display = 'none';
+      phase = 'over'; 
+      clearInterval(timer);
+      end(money >= GOAL);
+    }
+
     resize();
   </script>
 </body>
