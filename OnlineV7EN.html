@@ -1675,22 +1675,27 @@ function showCustomAlert(message, onConfirm = null, onCancel = null) {
     document.body.appendChild(overlay);
 }
 
-//0616
+//0714
 function countAnsweredQuestions() {
-    return quizData.reduce((count, q, idx) => {
-        if (q.type === 'general_content' || q.type !== 'general_content_group' ||q.type === 'intro') return count; // Bỏ qua intro
-        const sel = userSelections[idx];
-        if (!sel) return count;
-
-        if (q.type === 'type1' || q.type === 'type3') {
-            if (sel.answer !== null) return count + 1;
-        } else if (q.type === 'type2') {
-            if (Array.isArray(sel.answer) && sel.answer.some(a => a !== null)) {
-                return count + 1;
+    let count = 0;
+    quizData.forEach((q, index) => {
+        // Bỏ qua không đếm nếu phần tử đó là intro hoặc nội dung tự luận chung
+        if (q.type === 'intro' || q.type === 'general_content' || q.type === 'general_content_group') {
+            return; 
+        }
+        
+        const sel = userSelections[index];
+        if (sel && sel.answer !== undefined && sel.answer !== null) {
+            if (q.type === 'type1' || q.type === 'type3') {
+                if (sel.answer !== "") count++;
+            } else if (q.type === 'type2') {
+                if (Array.isArray(sel.answer) && sel.answer.some(a => a !== null && a !== "")) {
+                    count++;
+                }
             }
         }
-        return count;
-    }, 0);
+    });
+    return count;
 }
 function submitResults() {
     const answeredCount = countAnsweredQuestions();
